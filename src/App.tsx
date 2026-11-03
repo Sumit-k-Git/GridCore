@@ -8,7 +8,7 @@ export default function App() {
   return (
     <>
       <header className="bar">
-        <button className="logo" onClick={() => setView('home')}>◧ GridMaker</button>
+        <button className="logo" onClick={() => setView('home')}>❏ GridCore</button>
         <nav>
           <button className={view === 'grid' ? 'tab on' : 'tab'} onClick={() => setView('grid')}>Grid</button>
           <button className={view === 'scroll' ? 'tab on' : 'tab'} onClick={() => setView('scroll')}>Scroll</button>
