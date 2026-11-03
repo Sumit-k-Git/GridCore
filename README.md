@@ -1,6 +1,6 @@
 <div align="center">
 
-# ◧ GridCore [![](https://img.shields.io/badge/Live%20App-8b73ff?style=for-the-badge)](https://sumit-k-git.github.io/GridCore/)
+# ◧ GridCore [![](https://img.shields.io/badge/Visi%20-8b73ff?style=for-the-badge)](https://sumit-k-git.github.io/GridCore/)
 
 ### One image. Zero gaps. Full main-character energy. ✨
 
