@@ -1,7 +1,7 @@
-[![Open GridCore](https://img.shields.io/badge/Open%20GridCore-Live%20App-8b73ff?style=for-the-badge)](https://sumit-k-git.github.io/GridCore/)
 <div align="center">
 
 # ◧ GridCore
+[![Open GridCore](https://img.shields.io/badge/Open%20GridCore-Live%20App-8b73ff?style=for-the-badge)](https://sumit-k-git.github.io/GridCore/)
 
 ### One image. Zero gaps. Full main-character energy. ✨
 
