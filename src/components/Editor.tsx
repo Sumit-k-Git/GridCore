@@ -29,6 +29,8 @@ export default function Editor({ mode }: { mode: Mode }) {
   const [err, setErr] = useState('');
   const prev = useRef<HTMLCanvasElement>(null), prof = useRef<HTMLCanvasElement>(null), car = useRef<HTMLCanvasElement>(null);
   const drag = useRef<{ x: number; y: number; p: Placement } | null>(null);
+  const ptrs = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ d: number; z: number } | null>(null);
 
   const L = useMemo(() => {
     const cfg = { ...DEFAULT_CONFIG, thumbRatio: ratio };
@@ -85,13 +87,41 @@ export default function Editor({ mode }: { mode: Mode }) {
   function onDown(e: React.PointerEvent<HTMLCanvasElement>) {
     if (!img) return;
     e.currentTarget.setPointerCapture(e.pointerId);
-    drag.current = { x: e.clientX, y: e.clientY, p: pc };
+    ptrs.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.current.size === 2) {
+      const [a, b] = [...ptrs.current.values()];
+      pinch.current = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, z: pc.zoom };
+      drag.current = null;
+    } else drag.current = { x: e.clientX, y: e.clientY, p: pc };
   }
   function onMove(e: React.PointerEvent<HTMLCanvasElement>) {
-    const d = drag.current; if (!d || !img) return;
+    if (!img || !ptrs.current.has(e.pointerId)) return;
+    ptrs.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.current.size >= 2 && pinch.current) {
+      const [a, b] = [...ptrs.current.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      setP(clampPlacement(img.naturalWidth, img.naturalHeight, L, { ...pc, zoom: pinch.current.z * d / pinch.current.d }));
+      return;
+    }
+    const d = drag.current; if (!d) return;
     const f = L.vw / e.currentTarget.clientWidth;
     setP(clampPlacement(img.naturalWidth, img.naturalHeight, L, { ...d.p, panX: d.p.panX + (e.clientX - d.x) * f, panY: d.p.panY + (e.clientY - d.y) * f }));
   }
+  function onUp(e: React.PointerEvent<HTMLCanvasElement>) {
+    ptrs.current.delete(e.pointerId); pinch.current = null;
+    const rest = [...ptrs.current.values()][0];
+    drag.current = rest ? { x: rest.x, y: rest.y, p: pc } : null;
+  }
+  useEffect(() => {
+    const cv = prev.current;
+    if (!cv || !img) return;
+    const h = (e: WheelEvent) => {
+      e.preventDefault();
+      setP(q => clampPlacement(img.naturalWidth, img.naturalHeight, L, { ...q, zoom: q.zoom * Math.exp(-e.deltaY * 0.0015) }));
+    };
+    cv.addEventListener('wheel', h, { passive: false });
+    return () => cv.removeEventListener('wheel', h);
+  }, [img, L]);
   async function run(fn: () => Promise<void>) {
     setBusy(true); setErr('');
     try { await fn(); } catch (e) { setErr(e instanceof Error ? e.message : 'Export failed'); }
@@ -110,7 +140,11 @@ export default function Editor({ mode }: { mode: Mode }) {
       {err && <p className="err" role="alert">{err}</p>}
       <div className="controls">
         {mode === 'grid' ? (
-          <div className="seg">{[3, 6, 9].map(n => <button key={n} className={count === n ? 'tab on' : 'tab'} onClick={() => setCount(n)}>{n} posts</button>)}</div>
+          <div className="seg">{[3, 6, 9].map(n => (
+            <button key={n} aria-label={`${n} tile grid`} className={count === n ? 'pick on' : 'pick'} onClick={() => setCount(n)}>
+              <span className="gi" style={{ gridTemplateRows: `repeat(${n / 3}, auto)` }}>{Array.from({ length: n }, (_, k) => <i key={k} />)}</span>
+            </button>
+          ))}</div>
         ) : (
           <label>Slides: <b>{count}</b> <input type="range" min={2} max={10} value={count} onChange={e => setCount(+e.target.value)} /></label>
         )}
@@ -130,8 +164,8 @@ export default function Editor({ mode }: { mode: Mode }) {
 
       {!img ? <p className="muted">Upload an image to begin.</p> : (
         <>
-          <h3>Position <span className="muted">(drag to move)</span></h3>
-          <canvas ref={prev} className="stage" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={() => (drag.current = null)} onPointerCancel={() => (drag.current = null)} />
+          <h3>Position <span className="muted">(drag to move, pinch or scroll to zoom)</span></h3>
+          <canvas ref={prev} className="stage" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} />
 
           {mode === 'grid' && (<>
             <h3>Profile preview</h3>
@@ -148,7 +182,7 @@ export default function Editor({ mode }: { mode: Mode }) {
           </>)}
 
           <h3>Tiles</h3>
-          <div className="tiles" style={{ gridTemplateColumns: `repeat(${mode === 'grid' ? 3 : Math.min(L.cols, 5)}, minmax(0,1fr))` }}>
+          <div className="tiles" style={{ gridTemplateColumns: mode === 'grid' ? 'repeat(3, minmax(0,1fr))' : 'repeat(auto-fill, minmax(110px,1fr))' }}>
             {list.map(t => <TileThumb key={t.index} img={img} L={L} p={pc} t={t} mode={mode} />)}
           </div>
           <button className="btn primary" disabled={busy} onClick={() => run(() => downloadZip(img, L, pc, mode, list))}>{busy ? 'Working…' : 'Download all (ZIP)'}</button>
