@@ -1,29 +1,59 @@
-# Grid & Scroll Banner Maker for Instagram
-Open-source, fully client-side tool that splits one image into seamless Instagram profile-grid posts (3, 6 or 9) or panoramic carousel slides.
+<div align="center">
 
-## Privacy
-No backend, accounts, analytics, cookies or storage. Images are read with the browser File API, processed on a Canvas and exported locally. They never leave your device. Works offline once loaded.
+# ◧ GridCore
 
-## Run
-```
-npm install
-npm run dev      # local development
-npm run build    # type-check + production build in dist/
-npm run preview  # serve the build
-```
-## Deploy
-Push to `main`; enable **Settings → Pages → Source: GitHub Actions**. `.github/workflows/deploy.yml` builds and publishes. Any static host works (`base` is relative).
+### One image. Zero gaps. Full main-character energy. ✨
 
-## How the splitting algorithm works
-Posts are exported at `postW × postH` (default 1080×1350, 4:5). The profile grid shows each post centre-cropped to the thumbnail ratio (default 3:4, configurable).
-1. Visible region per post: `visH = postH`, `visW = round(postH × ratio)` (or the reverse if the ratio is wider than the post). Margins: `mx = (postW − visW)/2`, `my` likewise.
-2. A *virtual canvas* of `cols·visW × rows·visH` is built from the visible regions only. Your image is cover-fitted to it, then zoomed/panned.
-3. Tile (col,row) is rendered by translating the virtual canvas by `(mx − col·visW, my − row·visH)` into a `postW × postH` canvas. The centre `visW × visH` area is exactly what Instagram shows, so adjacent thumbnails join without gaps; the hidden margins hold neighbouring image content.
-4. Newest post appears first, so tile at reading index `i` of `N` is published as post `N − i` (post 1 = bottom-right).
-Scroll posts use the same engine with `cols = slides`, `visW = postW` (no crop).
+Turn any picture into a **seamless Instagram grid** or a **swipeable panorama**, right in your browser.
 
-## Changing the ratio
-Use the selector in the app, or edit `DEFAULT_CONFIG` / `RATIO_PRESETS` in `src/lib/engine.ts`.
+</div>
 
-## License
-MIT
+---
+
+## 🔥 What can you make?
+
+**🧩 Grid Posts**
+Pick a layout, drop in your image, and watch it slice into tiles that snap together on your profile like a puzzle.
+
+**🎞️ Scroll Posts**
+One wide image becomes a carousel that flows from slide to slide as people swipe.
+
+## 🎮 Play with it
+
+- 👆 **Drag** your image to move it around
+- 🤏 **Pinch** or **scroll** to zoom in on the good part
+- 👀 **Preview** your profile before you post a single thing
+- 🔢 **Follow the numbers** on each tile so everything lands in the right order
+- 📦 **Grab it all** in one ZIP, or download tiles one by one
+
+## 💅 Why it looks so good
+
+GridCore knows how Instagram crops your profile thumbnails and plans around it, so your tiles line up instead of leaving awkward gaps. Going back to the old square grid or a different shape? Just switch the thumbnail ratio.
+
+## 🔒 Your pics stay yours
+
+Everything happens on your device. No uploads, no accounts, no tracking. Your images never leave your screen.
+
+## 🚀 Three steps. That's it.
+
+1. **Drop** your image
+2. **Tweak** it until it's perfect
+3. **Download** and post in order
+
+## 🛠️ Built with
+
+React · TypeScript · Vite · Canvas · JSZip
+
+## 🤝 Wanna help?
+
+Ideas, fixes and fresh features are welcome. Check [CONTRIBUTING.md](CONTRIBUTING.md) to jump in.
+
+## 📄 License
+
+[MIT](LICENSE). Free to use, remix and share.
+
+<div align="center">
+
+Made for creators who like their feeds clean. 💜
+
+</div>
